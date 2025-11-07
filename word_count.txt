@@ -1,0 +1,19 @@
+let
+  Source = AzureStorage.DataLake("https://goodreadreviews60312547.dfs.core.windows.net/lakehouse/gold/curated_reviews/", [HierarchicalNavigation = true]),
+  DeltaTable = DeltaLake.Table(Source),
+  #"Changed column type" = Table.TransformColumnTypes(DeltaTable, {{"book_id", Int64.Type}}),
+  #"Changed column type 1" = Table.TransformColumnTypes(#"Changed column type", {{"book_id", type text}, {"author_id", type text}, {"user_id", type text}, {"book_avg_rating", Int64.Type}, {"book_ratings_count", Int64.Type}}),
+  #"Removed blank rows" = Table.SelectRows(#"Changed column type 1", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+  #"Removed blank rows 1" = Table.SelectRows(#"Removed blank rows", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+  #"Removed blank rows 2" = Table.SelectRows(#"Removed blank rows 1", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+  #"Added custom" = Table.AddColumn(#"Removed blank rows 2", "review_length", each Text.Length([review_text])),
+  #"Filtered rows" = Table.SelectRows(#"Added custom", each [review_length] >= 10),
+  #"Replaced value" = Table.ReplaceValue(#"Filtered rows", null, "Unknown", Replacer.ReplaceValue, {"language"}),
+  #"Replaced value 1" = Table.ReplaceValue(#"Replaced value", "", "unknown", Replacer.ReplaceValue, {"language"}),
+  #"Trimmed text" = Table.TransformColumns(#"Replaced value 1", {{"title", each Text.Trim(_), type nullable text}}),
+  #"Trimmed text 1" = Table.TransformColumns(#"Trimmed text", {{"name", each Text.Trim(_), type nullable text}}),
+  #"Trimmed text 2" = Table.TransformColumns(#"Trimmed text 1", {{"review_text", each Text.Trim(_), type nullable text}}),
+  #"Capitalized each word" = Table.TransformColumns(#"Trimmed text 2", {{"title", each Text.Proper(_), type nullable text}}),
+  #"Added custom 1" = Table.AddColumn(#"Capitalized each word", "word_count", each Text.Length(Text.Trim([review_text])) - Text.Length(Text.Replace(Text.Trim([review_text]), " ", "")) + 1)
+in
+  #"Added custom 1"
