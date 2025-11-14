@@ -1,0 +1,39 @@
+This lab extends my previous work from Lab 3 by transforming textual reviews into structured, numerical features that can be used for machine learning.
+
+1. Loading the Data
+
+The curated dataset was loaded from the Gold layer using Spark’s Delta format:
+
+abfss://lakehouse@goodreadreviews60312547.dfs.core.windows.net/gold/curated_reviews
+
+2. Cleaning and Normalization
+
+A cleaned_review column was created by: Converting text to lowercase.
+
+Removing punctuation, emojis, URLs, and extra spaces.
+
+Filtering out short or empty reviews.
+
+3. Feature Extraction
+
+The following features were generated:
+
+Feature	Description
+review_length_chars	Number of characters in the review text
+review_length_words	Number of words in the review text
+sentiment_score	Sentiment polarity (−1 negative → +1 positive) using VADER
+
+4. Saving the Final Dataset
+
+The enriched dataset was saved in the Gold layer under:
+
+abfss://lakehouse@goodreadreviews60312547.dfs.core.windows.net/gold/features_v2/
+
+5. Verification
+
+The table was reloaded, and schema inspection confirmed the presence of all engineered features with valid data types.
+
+6. Outcome
+
+The resulting dataset is clean, feature-rich, and ready for the next stage of analysis (model training in Lab 5).
+The features are clearly named, consistently typed, and reflect meaningful text-derived metrics.
